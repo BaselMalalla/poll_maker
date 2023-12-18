@@ -1,11 +1,12 @@
 <?php
 session_start();
 
-$submitResponse = "";
+$registerResponse = "";
 
 $nameRegex = "/^[a-zA-Z][a-z\sA-Z]+$/";
-$emailRegex = "/^[a-zA-Z0-9]([\w.])*@[a-z0-9][a-zA-Z]*([.][a-zA-Z]{1,})+$/";
+$emailRegex = "/^[a-z0-9!#$%&'*+\\/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+\\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/";
 $passwordRegex = "/^(?=.*[a-z])(?=.*[@.=#$!%*_\-?&^])(?=.*[A-Z])(?=.*[\d])([\w@.=#$!%*_\-?&^]){8,}$/";
+
 
 
 try {
@@ -14,11 +15,11 @@ try {
     if (isset($_POST['register-btn'])) {
         // Check against regex first
         if (!preg_match($nameRegex, $_POST['name'])) {
-            $_SESSION['submitResponse'] = "Invalid username format.";
+            $_SESSION['registerResponse'] = "Invalid username format.";
         } else if (!preg_match($emailRegex, $_POST['email'])) {
-            $_SESSION['submitResponse'] = "Invalid email format.";
+            $_SESSION['registerResponse'] = "Invalid email format.";
         } else if (!preg_match($passwordRegex, $_POST['password'])) {
-            $_SESSION['submitResponse'] = "Password doesn't meet requirements.";
+            $_SESSION['registerResponse'] = "Password doesn't meet requirements.";
         } else {
             // Regex checks passed, continue processing
             $name = $_POST['name'];
@@ -28,7 +29,7 @@ try {
 
             // Password confirmation
             if ($confirmPassword !== $password) {
-                $_SESSION['submitResponse'] = "Passwords must match.";
+                $_SESSION['registerResponse'] = "Passwords must match.";
             } else {
                 $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
@@ -50,14 +51,14 @@ try {
         }
     }
     // Check if there's a session message and clear it
-    if (isset($_SESSION['submitResponse'])) {
-        $submitResponse = $_SESSION['submitResponse'];
-        unset($_SESSION['submitResponse']);
+    if (isset($_SESSION['registerResponse'])) {
+        $registerResponse = $_SESSION['registerResponse'];
+        unset($_SESSION['registerResponse']);
     } else {
-        $submitResponse = "";
+        $registerResponse = "";
     }
 } catch (PDOException $e) {
-    die("Error :" . $e->getMessage());
+    die("DatabaseError :" . $e->getMessage());
 }
 
 ?>
@@ -92,14 +93,14 @@ try {
             </div>
             <input class='submit-button' type="submit" value="Sign Up" name="register-btn" />
             <div class="validation-message">
-                <?php echo $submitResponse; ?>
+                <?php echo $registerResponse; ?>
             </div>
             <div class="footer-links">
                 <div class="login-actions">
                     Have an account? <a class="link" href="login.php">Login</a>
                 </div>
                 <div class="login-actions">
-                    Or continue as <a class="link" href="mainpage.php">Guest</a>
+                    Or continue as <a class="link" href="index.php">Guest</a>
                 </div>
             </div>
         </form>

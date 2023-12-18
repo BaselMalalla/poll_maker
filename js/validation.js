@@ -1,3 +1,5 @@
+// Add validation for "Confiim password"
+
 document.addEventListener("DOMContentLoaded", () => {
   const usernameInput = document.querySelector('input[name="name"]');
   const emailInput = document.querySelector('input[name="email"]');
@@ -7,7 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const passwordValidationMessage = document.getElementById("password-validation-message");
   const submitButton = document.querySelector('input[name="register-btn"]');
   const usernameRegex = /^[a-zA-Z][a-zA-Z\s]*$/;
-  const emailRegex = /^[a-z0-9]+@[a-z]+\.[a-z]{2,3}$/;
+  const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@.=#$!%*_\-?&^])[A-Za-z\d@.=#$!%*_\-?&^]{8,}$/;
 
   let isUsernameValid = false;
