@@ -1,5 +1,6 @@
 <?php
 session_start();
+include('../includes/header.php');
 
 $loginResponse = "";
 
@@ -23,8 +24,8 @@ try {
 
     if ($row) {
       if (password_verify($password, $row['password'])) {
-        $_SESSION['ID'] = $row['id'];
-        $_SESSION['NAME'] = $row['name'];
+        $_SESSION['user_id'] = $row['user_id'];
+        $_SESSION['username'] = $row['username'];
         header("Location: index.php");
         exit();
       } else {

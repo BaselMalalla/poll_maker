@@ -1,3 +1,8 @@
+<?php
+session_start();
+include('../includes/header.php');
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -16,3 +21,5 @@
 </body>
 
 </html>
+
+<?php include('../includes/footer.php'); ?>
