@@ -1,4 +1,5 @@
 // Add validation for "Confiim password"
+// Make it more modular with functions
 
 document.addEventListener("DOMContentLoaded", () => {
   const usernameInput = document.querySelector('input[name="name"]');
