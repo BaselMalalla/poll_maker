@@ -14,21 +14,7 @@ $optionsCount = isset($_POST['optionsCount']) ? intval($_POST['optionsCount']) :
 $options = [];
 $title = "";
 $question = "";
-
-// // Increment option count
-// if (isset($_POST['add-option-btn'])) {
-//     $optionsCount++;
-// }
-
-// // Decrement option count
-// if (isset($_POST['delete-option-btn']) && $optionsCount > 2) {
-//     $optionsCount--;
-// }
-
-// // Return option count to initial value (2)
-// if (isset($_POST['reset-options-btn'])) {
-//     $optionsCount = 2;
-// }
+$createPollResponses = [];
 
 // Handle form submissions
 if (isset($_POST['create-poll-btn'])) {
@@ -38,28 +24,30 @@ if (isset($_POST['create-poll-btn'])) {
 // Function to handle form submissions
 function handleFormSubmission()
 {
-    global $optionsCount, $options, $title, $question, $userId;
+    global $createPollResponses, $options, $title, $question, $userId;
 
-    // Get form data
-    $title = $_POST['titel'] ?? '';
-    $question = $_POST['question'] ?? '';
-    // $options = array_map('sanitizeInput', $_POST['options'] ?? []);
-    $options = $_POST['options'];
-    $isTimed = $_POST['isTimed'] ?? '';
-    $endDate = ($isTimed) ? $_POST['endDate'] : null;
+    // Get form data and sanitize inputs
+    $title = sanitizeInput($_POST['title'] ?? '');
+    $question = sanitizeInput($_POST['question'] ?? '');
+    $options = array_map('sanitizeInput', $_POST['options'] ?? []);
+    $endDate = ($_POST['poll_duration'] == 'timed') ? sanitizeInput($_POST['endDate']) : null;
+
+
 
     // Validate form data
-    if (validateForm($title, $question, $options, $isTimed, $endDate)) {
+    $validationMessages = validateForm($title, $question, $options, $endDate);
+    if (empty($validationMessages)) {
         // Insert poll into the database
-        if (insertPollIntoDatabase($title, $question, $userId, $options, $isTimed, $endDate)) {
+        if (insertPollIntoDatabase($title, $question, $userId, $options,  $endDate)) {
             header("Location: index.php");
             exit();
         } else {
-            echo "Failed to insert poll into the database.";
+            $validationMessages[] = "Failed to insert poll into the database.";
         }
     } else {
-        echo "Form data validation failed.";
+        $validationMessages[] = " Form data validation failed.";
     }
+    $createPollResponses = $validationMessages;
 }
 
 // Function to sanitize input
@@ -69,23 +57,49 @@ function sanitizeInput($input)
 }
 
 // Function to validate form data
-function validateForm($title, $question, $options, $isTimed, $endDate)
+function validateForm($title, $question, $options, $endDate)
 {
-    // Add your validation logic here
-    // Return true if data is valid, false otherwise
-    return true;
+    $validationMessages = [];
+
+    // Check if title and question are not empty
+    if (empty($title) || empty($question)) {
+        $validationMessages[] = "Title and question are required.";
+    }
+
+    // Check if at least two options are provided
+    if (count($options) < 2) {
+        $validationMessages[] = "At least two options are required.";
+    }
+
+    // Validate each option
+    foreach ($options as $option) {
+        if (empty($option)) {
+            $validationMessages[] = "All options must be filled.";
+            break;  // Stop the loop if one option is empty
+        }
+    }
+
+    // Check if the end date is provided for timed polls
+    if ($_POST['poll_duration'] == 'timed' && empty($endDate)) {
+        $validationMessages[] = "End date is required for timed polls.";
+    }
+
+    // If there are errors, return the array of errors
+    // Otherwise, return an empty array indicating validation success
+    return $validationMessages;
 }
 
+
 // Function to insert poll into the database
-function insertPollIntoDatabase($title, $question, $userId, $options, $isTimed, $endDate)
+function insertPollIntoDatabase($title, $question, $userId, $options, $endDate)
 {
     try {
         require('../config/connection.php');
         $db->beginTransaction();
 
         // Insert poll details
-        $stmt = $db->prepare("INSERT INTO polls(poll_id, user_id, title, question, end_date, is_timed, is_open) VALUES (null, ?, ?, ?, ?, ?, true)");
-        $stmt->execute([$userId, $title, $question, $endDate, $isTimed]);
+        $stmt = $db->prepare("INSERT INTO polls(poll_id, user_id, title, question, end_date, is_open) VALUES (null, ?, ?, ?, ?, true)");
+        $stmt->execute([$userId, $title, $question, $endDate]);
 
         // Get last inserted poll ID
         $pollId = $db->lastInsertId();
@@ -114,91 +128,56 @@ function insertPollIntoDatabase($title, $question, $userId, $options, $isTimed, 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create New Poll</title>
     <link href="../css/styles.css" rel="stylesheet" />
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const options = document.getElementById('options');
-            const addOptionButton = document.getElementById('addOption');
-            const removeOptionButton = document.getElementById('removeOption');
-
-            addOptionButton.addEventListener('click', () => {
-                const inputTags = options.getElementsByTagName('input');
-                const newField = document.createElement('input');
-
-                const newOptionNumber = inputTags.length + 1; // Calculate the new option number
-                Object.assign(newField, {
-                    type: 'text',
-                    name: 'options[]',
-                    classList: ['options'],
-                    placeholder: `Option ${newOptionNumber}`,
-                });
-
-                options.appendChild(newField);
-                console.log("Element should be appended");
-            });
-
-            removeOptionButton.addEventListener('click', () => {
-                const inputTags = options.getElementsByTagName('input');
-                console.log("Element should be removed");
-                if (inputTags.length > 2) {
-                    options.removeChild(inputTags[inputTags.length - 1]);
-                }
-            });
-
-        });
-    </script>
-
-
-
-
+    <script src="../js/create_poll.js"></script>
 </head>
 
 <body>
-    <div class="form-container">
-        <div class="poll-container">
-            <h2>Create New Poll</h2>
+    <div class="container">
+        <div class="poll-container text-center">
+            <div class="container-header">
+                <h2 class="bold">Create a New Poll</h2>
+            </div>
+            <div id="validation-messages"></div>
             <form method='POST' id="poll-form">
-                <input class='input-text' type="text" name="titel" placeholder="Title" required /><br>
-                <input class='input-text' type="text" name="question" placeholder="Question" required title="Write your question" /><br><br>
+                <div class="input-group">
+                    <input class='form-input' type="text" name="title" placeholder="Title" required /><br>
+                    <input class='form-input' type="text" name="question" placeholder="Question" required title="Write your question" />
+                </div>
 
-                <div id="options">
-                    <input class='input-options' type='text' name='options[$i]' placeholder='Option 1' required />
-                    <input class='input-options' type='text' name='options[$i]' placeholder='Option 2' required />
+                <div id="options" class="input-group">
+                    <input class='form-input' type='text' name='options[]' placeholder='Option 1' required />
+                    <input class='form-input' type='text' name='options[]' placeholder='Option 2' required />
                 </div>
 
                 <div class="option-controls">
-                    <button class='button-primary' type='button' id='addOption'>Add an option</button>
-                    <button class='button-primary' type='button' id='removeOption'>Remove last option</button>
-                    <button class='button-primary' type='button' onclick='form.reset()'>Reset</button></br></br>
-
+                    <button class='button-primary' type='button' id='addOption'>Add Option</button>
+                    <button class='button-primary' type='button' id='removeOption'>Remove Option</button>
+                    <button class='button-primary' type='button' onclick='form.reset()'>Clear</button></br></br>
                 </div>
 
                 <div class="expiration-options">
-                    <h4>Poll Duration:</h4>
+                    <h3 class="bold">Poll Duration</h3>
                     <div class="radio-options">
                         <label for="option-open">
                             <input type="radio" id="option-open" name="poll_duration" value="open" checked>
-                            Leave it open for now
+                            <span class="radio-label">Leave it open for now</span>
                         </label>
                         <label for="option-timed">
                             <input type="radio" id="option-timed" name="poll_duration" value="timed">
-                            Close at:
+                            <span class="radio-label">Choose an expiry date</span>
                         </label>
-
                     </div>
                     <div class="timed-options" hidden>
                         <input type="datetime-local" id="endDate" name="endDate" min="<?php echo date('Y-m-d\TH:i'); ?>">
                     </div>
-                    <script>
-                        const timedOptions = document.querySelector('.timed-options');
-                        document.querySelectorAll('input[name="poll_duration"]').forEach(radio => {
-                            radio.addEventListener('change', (event) => {
-                                timedOptions.hidden = event.target.value !== 'timed';
-                            });
-                        });
-                    </script>
                 </div>
-
-                <input class='create-poll-button' type='submit' value='Create Poll' name='create-poll-btn' />
+                <div class='validation-message'>
+                    <?php
+                    foreach ($createPollResponses as $response) {
+                        echo "<p>$response</p>";
+                    } ?>
+                </div>
+                <input class='button-primary button-submit' type='submit' value='Create Poll' name='create-poll-btn' />
             </form>
         </div>
     </div>

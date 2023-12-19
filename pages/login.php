@@ -57,12 +57,13 @@ try {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login Form</title>
   <link rel="stylesheet" href="../css/styles.css">
-
 </head>
 
 <body>
-  <div class="register-login-container">
-    <div class="form-header">Login</div>
+  <div class="container text-center">
+    <div class="container-header">
+      <h2>Login</h2>
+    </div>
     <form method="post">
       <div class="input-group">
         <input class='form-input' type="text" placeholder="E-mail" name="email" required />
@@ -70,10 +71,10 @@ try {
       <div class="input-group">
         <input class='form-input' type="password" placeholder="Password" name="password" required />
       </div>
-      <input class='submit-button' type="submit" name="login-btn">
+      <input class='button-primary button-submit' type="submit" value="Login" name="login-btn">
       <div class="validation-message">
-                <?php echo $loginResponse; ?>
-            </div>
+        <?php echo $loginResponse; ?>
+      </div>
       <div class="footer-links">
         <div class="login-actions">
           Don't have an account? <a class="link" href="register.php">Register</a>
@@ -83,8 +84,8 @@ try {
         </div>
       </div>
     </form>
-
   </div>
 </body>
+<?php include('../includes/footer.php'); ?><?php include('../includes/footer.php'); ?>
 
 </html>

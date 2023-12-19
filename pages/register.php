@@ -72,11 +72,14 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registration Form</title>
     <link rel="stylesheet" href="../css/styles.css">
+    <script src="../js/validation.js"></script>
 </head>
 
 <body>
-    <div class="register-login-container">
-        <div class="form-header">Register</div>
+    <div class="container text-center">
+        <div class="container-header">
+            <h2>Register</h2>
+        </div>
         <form method="post">
             <div class="input-group">
                 <input class='form-input' type="text" placeholder="Username" name="name" required />
@@ -93,10 +96,10 @@ try {
             <div class="input-group">
                 <input class='form-input' type="password" placeholder="Confirm Password" name="confirmPassword" required />
             </div>
-            <input class='submit-button' type="submit" value="Sign Up" name="register-btn" />
             <div class="validation-message">
                 <?php echo $registerResponse; ?>
             </div>
+            <input class='button-primary button-submit' type="submit" value="Register" name="register-btn" />
             <div class="footer-links">
                 <div class="login-actions">
                     Have an account? <a class="link" href="login.php">Login</a>
@@ -107,7 +110,7 @@ try {
             </div>
         </form>
     </div>
-    <script src="../js/validation.js"></script>
 </body>
+<?php include('../includes/footer.php'); ?>
 
 </html>
