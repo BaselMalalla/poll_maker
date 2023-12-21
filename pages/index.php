@@ -1,6 +1,83 @@
+<!-- Page structure needs minor improvements when there are no results  -->
 <?php
 session_start();
 include('../includes/header.php');
+
+$polls = [];
+
+$queryResponseMessage = "";
+
+// Fetch all polls from the database
+$stmt = getFilteredQueryStatement();
+$stmt->execute();
+
+// Check if there are any polls
+if ($stmt->rowCount() > 0) {
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $pollId = $row['poll_id'];
+        $title = $row['title'];
+        $question = $row['question'];
+        $endDate = $row['end_date'];
+
+        // Check if the poll is closed
+        $isOpen = ($endDate === null || strtotime($endDate) > time()) ? true : false;
+
+        // Create an associative array for the poll
+        $poll = [
+            'pollId' => $pollId,
+            'title' => $title,
+            'question' => $question,
+            'isOpen' => $isOpen,
+            'endDate' => $endDate
+        ];
+
+        // Add the poll to the array
+        $polls[] = $poll;
+    }
+} else {
+    $queryResponseMessage = "No polls found.";
+}
+
+
+function getFilteredQueryStatement()
+{
+    $statusFilter = isset($_POST['statusFilter']) ? $_POST['statusFilter'] : 'all';
+    $startDate = isset($_POST['startDate']) ? $_POST['startDate'] : null;
+    $endDate = isset($_POST['endDate']) ? $_POST['endDate'] : null;
+
+    $query = "SELECT * FROM polls";
+
+    // Apply filters
+    if ($statusFilter !== 'all') {
+        $query .= " WHERE (end_date " . ($statusFilter == 'open' ? 'IS NULL OR end_date > CURRENT_TIMESTAMP' : '< CURRENT_TIMESTAMP') . ")";
+    }
+
+    if ($startDate) {
+        $query .= ($statusFilter == 'all' ? " WHERE" : " AND") . " end_date >= :startDate";
+    }
+
+    if ($endDate) {
+        $query .= ($statusFilter == 'all' && !$startDate ? " WHERE" : " AND") . " end_date <= :endDate";
+    }
+    try {
+        require('../config/connection.php');
+        $stmt = $db->prepare($query);
+
+        // Bind parameters for date range
+        if ($startDate) {
+            $stmt->bindParam(':startDate', $startDate);
+        }
+
+        if ($endDate) {
+            $stmt->bindParam(':endDate', $endDate);
+        }
+
+        return $stmt;
+    } catch (PDOException $e) {
+        // Handle the exception (e.g., log or display an error message)
+        echo "Error: " . $e->getMessage();
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -11,13 +88,88 @@ include('../includes/header.php');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home page</title>
     <link rel="stylesheet" href="../css/styles.css">
- 
+
 </head>
 
 <body>
-    <h1>This is the home page</h1>
-    <a class="link" href="register.php">Register</a><br>
-    <a class="link" href="login.php">Login</a>
+    <div class="page-container">
+        <h1>Available Polls</h1>
+        <form class="poll-filter-form" method="post" action="">
+            <div class="filter-container">
+                <div class="filter-row">
+                    <div class="filter-item">
+                        <label for="statusFilter" class="filter-label">Status:</label>
+                        <select name="statusFilter" id="statusFilter" class="filter-select">
+                            <option value="all">All</option>
+                            <option value="open">Open</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-item">
+                        <label for="startDate" class="filter-label">Start Date:</label>
+                        <input type="date" name="startDate" id="startDate" class="filter-input">
+                    </div>
+
+                    <div class="filter-item">
+                        <label for="endDate" class="filter-label">End Date:</label>
+                        <input type="date" name="endDate" id="endDate" class="filter-input">
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <input type="submit" value="Apply Filter" class="button-primary">
+                </div>
+            </div>
+        </form>
+        <?php
+        echo " <div class='validation-message'><p>$queryResponseMessage</p></div>";
+        ?>
+        <div class="flex-container">
+            <?php
+
+
+            // Loop through $polls to display each poll
+            foreach ($polls as $poll) {
+                // Extract poll information from the associative array
+                $pollId = $poll['pollId'];
+                $title = $poll['title'];
+                $question = $poll['question'];
+                $isOpen = $poll['isOpen'];
+                $endDate = $poll['endDate'];
+
+                $allowVote = isset($_SESSION['user_id']) && $isOpen;
+            ?>
+
+                <div class="flex-item">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><?php echo $title; ?></h2>
+                        </div>
+                        <div class="card-body">
+                            <p><?php echo substr($question, 0, 70) . (strlen($question) > 70 ? '...' : ''); ?></p>
+                            <p> <?php echo (!$isOpen ? '<span class="closed">Closed</span>' : '<span class="open">Open</span>'); ?></p>
+
+                            <p>Expiry Date: <?php echo ($poll['endDate'] !== null ? date('Y-m-d H:i', strtotime($poll['endDate'])) : 'No expiry date set'); ?></p>
+
+                            <div class="card-buttons-container">
+
+                                <?php if ($allowVote) : ?>
+                                    <a class="button-primary button-card" href='vote.php?poll_id=<?php echo $pollId; ?>'>Vote</a>
+                                <?php else : ?>
+                                    <a class="button-primary button-card disabled-link" href='vote.php?poll_id=<?php echo $pollId; ?>'>Vote</a>
+                                <?php endif; ?>
+                                <a class="button-primary button-card" href='results.php?poll_id=<?php echo $pollId; ?>' <?php echo ($isOpen ? '' : 'disabled'); ?>>Results</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            <?php
+            }
+            ?>
+        </div>
+    </div>
 </body>
 
 </html>
