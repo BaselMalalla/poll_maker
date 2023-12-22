@@ -49,23 +49,38 @@ function getFilteredQueryStatement()
     $statusFilter = isset($_POST['statusFilter']) ? $_POST['statusFilter'] : 'all';
     $startDate = isset($_POST['startDate']) ? $_POST['startDate'] : null;
     $endDate = isset($_POST['endDate']) ? $_POST['endDate'] : null;
+    $ownedPolls = true;
+
+    $userId = (isset($_SESSION['user_id'])) ? $_SESSION['user_id'] : null;
 
     // Initial query
     $query = "SELECT * FROM polls";
-
+    $filtersApplied = 0;
     // Apply filters
     if ($statusFilter !== 'all') {
         $query .= " WHERE (end_date " . ($statusFilter == 'open' ? 'IS NULL OR end_date >= CURRENT_TIMESTAMP' : '< CURRENT_TIMESTAMP') . ")";
+        $filtersApplied++;
     }
 
     if ($startDate) {
         $query .= ($statusFilter == 'all' ? " WHERE" : " AND") . " end_date >= :startDate";
+        $filtersApplied++;
     }
 
     if ($endDate) {
         $query .= ($statusFilter == 'all' && !$startDate ? " WHERE" : " AND") . " end_date <= :endDate";
+        $filtersApplied++;
     }
 
+    // Add owned polls filter
+    if ($ownedPolls && $userId) {
+        if ($filtersApplied > 0) {
+            $query .= " AND user_id = :userId";
+        } else {
+            $query .= " WHERE user_id = :userId";
+        }
+        $filtersApplied = 0;
+    }
 
     try {
         require('../config/connection.php');
@@ -80,6 +95,10 @@ function getFilteredQueryStatement()
             $stmt->bindValue(':endDate', $endDate);
         }
 
+        // Bind user ID for owned polls filter
+        if ($ownedPolls && $userId) {
+            $stmt->bindValue(':userId', $userId);
+        }
 
         return $stmt;
     } catch (PDOException $e) {
@@ -104,7 +123,7 @@ function getFilteredQueryStatement()
     <div class="page-container">
         <div class="flex-container">
             <div class="flex-item card">
-                <h1>Available Polls</h1>
+                <h1>My Polls</h1>
                 <form class="poll-filter-form" method="post" action="">
                     <div class="filter-container">
                         <div class="filter-row">

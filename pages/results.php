@@ -93,10 +93,12 @@ function formatResult($voteCount, $totalVotes)
                 </div>
             <?php endforeach; ?>
         </div>
+
         <a class="button-primary" href="index.php">Back to Home page</a>
         <?php if (isUserTheCreator($userId, $creatorId)) : ?>
             <a class="button-primary button-card" href='stop_poll.php?poll_id=<?php echo $pollId; ?>'>Stop Poll</a>
         <?php endif; ?>
+
     </div>
 </body>
 

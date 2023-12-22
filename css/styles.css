@@ -26,7 +26,7 @@ body {
   background-color: #fff;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  padding: 20px;
+  padding: 30px;
   margin: 20px auto;
   width: 400px;
   box-sizing: border-box;
@@ -183,11 +183,12 @@ body {
   flex-wrap: wrap;
   justify-content: space-between;
   min-width: 100%;
+  flex-direction: column;
 }
 
 .flex-item {
-  width: 30%;
-  margin-bottom: 10px;
+  width: 100%;
+  /* margin-bottom: 10px; */
   margin-top: 10px;
 }
 
@@ -195,13 +196,12 @@ body {
   background-color: #fff;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  height: 330px;
+  min-height: 200px;
   padding: 20px;
-  flex-direction: column;
+  width: 100%;
   justify-content: space-between;
   overflow: hidden;
   border: 2px solid #d4d4d4;
-  flex-direction: column;
 }
 
 .card-header {
@@ -215,16 +215,20 @@ body {
   flex-direction: row;
   margin-top: auto;
   width: 100%;
-  justify-content: space-around;
 }
 
 .button-card {
   position: relative;
-  width: 30%;
+  min-width: 8%;
   bottom: 0;
-  justify-self: end;
-  gap: 10px;
   text-align: center;
+  margin-right: 1.5%;
+  margin-bottom: 0;
+}
+
+.button-card-stop {
+  margin-left: auto;
+  background-color: #ce0000;
 }
 
 .disabled-link {
@@ -254,8 +258,19 @@ body {
     width: 100%;
   }
 
-  .flex-item {
-    width: 48%; /* Two cards per row */
+  .card-buttons-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: auto;
+    width: 100%;
+  }
+
+  .button-card {
+    position: relative;
+    width: 100%;
+    bottom: 0;
+    text-align: center;
+    margin-right: 1.5%;
   }
 }
 
@@ -296,7 +311,10 @@ body {
     margin-right: 0;
     margin-bottom: 10px;
   }
-
+  .filter-select,
+  .filter-input {
+    width: 90%;
+  }
   .filter-row {
     justify-content: space-between;
   }
