@@ -1,6 +1,10 @@
+<!-- IMPORTANT ISSUE -->
+<!-- Email will not be accepted unless it matches the case of the input -->
+<!-- FIX ASASP -->
 <?php
 session_start();
 include('../includes/header.php');
+include('../includes/functions.php');
 
 $loginResponse = "";
 

@@ -1,6 +1,7 @@
 <?php
 session_start();
 include('../includes/header.php');
+include('../includes/functions.php');
 
 // Redirect to login if not logged in
 if (!isset($_SESSION['user_id'])) {
@@ -18,10 +19,10 @@ $createPollResponses = [];
 
 // Handle form submissions
 if (isset($_POST['create-poll-btn'])) {
+
     handleFormSubmission();
 }
 
-// Function to handle form submissions
 function handleFormSubmission()
 {
     global $createPollResponses, $options, $title, $question, $userId;
@@ -35,7 +36,7 @@ function handleFormSubmission()
 
 
     // Validate form data
-    $validationMessages = validateForm($title, $question, $options, $endDate);
+    $validationMessages = getPollCreationValidationMessages($title, $question, $options, $endDate);
     if (empty($validationMessages)) {
         // Insert poll into the database
         if (insertPollIntoDatabase($title, $question, $userId, $options,  $endDate)) {
@@ -50,14 +51,37 @@ function handleFormSubmission()
     $createPollResponses = $validationMessages;
 }
 
-// Function to sanitize input
-function sanitizeInput($input)
+// Function to insert poll into the database
+function insertPollIntoDatabase($title, $question, $userId, $options, $endDate)
 {
-    return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
+    try {
+        require('../config/connection.php');
+        $db->beginTransaction();
+
+        // Insert poll details
+        $stmt = $db->prepare("INSERT INTO polls(poll_id, user_id, title, question, end_date) VALUES (null, ?, ?, ?, ?)");
+        $stmt->execute([$userId, $title, $question, $endDate]);
+
+        // Get last inserted poll ID
+        $pollId = $db->lastInsertId();
+
+        // Insert poll options
+        $stmt = $db->prepare("INSERT INTO poll_options(option_id, poll_id, content) VALUES (null, ?, ?)");
+        foreach ($options as $option) {
+            $stmt->execute([$pollId, $option]);
+        }
+
+        $db->commit();
+        return true;
+    } catch (PDOException $e) {
+        $db->rollBack();
+        echo "Error: " . $e->getMessage();
+        return false;
+    }
 }
 
 // Function to validate form data
-function validateForm($title, $question, $options, $endDate)
+function getPollCreationValidationMessages($title, $question, $options, $endDate)
 {
     $validationMessages = [];
 
@@ -89,35 +113,6 @@ function validateForm($title, $question, $options, $endDate)
     return $validationMessages;
 }
 
-
-// Function to insert poll into the database
-function insertPollIntoDatabase($title, $question, $userId, $options, $endDate)
-{
-    try {
-        require('../config/connection.php');
-        $db->beginTransaction();
-
-        // Insert poll details
-        $stmt = $db->prepare("INSERT INTO polls(poll_id, user_id, title, question, end_date, is_open) VALUES (null, ?, ?, ?, ?, true)");
-        $stmt->execute([$userId, $title, $question, $endDate]);
-
-        // Get last inserted poll ID
-        $pollId = $db->lastInsertId();
-
-        // Insert poll options
-        $stmt = $db->prepare("INSERT INTO poll_options(option_id, poll_id, content) VALUES (null, ?, ?)");
-        foreach ($options as $option) {
-            $stmt->execute([$pollId, $option]);
-        }
-
-        $db->commit();
-        return true;
-    } catch (PDOException $e) {
-        $db->rollBack();
-        echo "Error: " . $e->getMessage();
-        return false;
-    }
-}
 ?>
 
 <!DOCTYPE html>

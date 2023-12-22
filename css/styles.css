@@ -19,7 +19,7 @@ body {
   border-radius: 8px;
   padding: 20px;
   margin-top: 50px;
-  min-width: 40%;
+  min-width: 60%;
 }
 
 .container {
@@ -78,7 +78,8 @@ body {
 .validation-message {
   font-size: 14px;
   color: #ff0000;
-  margin-top: 7px;
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 
 .form-input {
@@ -181,23 +182,25 @@ body {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
+  min-width: 100%;
 }
 
 .flex-item {
   width: 30%;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
+  margin-top: 10px;
 }
 
 .card {
   background-color: #fff;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
-  height: 300px;
+  height: 330px;
   padding: 20px;
   flex-direction: column;
   justify-content: space-between;
   overflow: hidden;
-  display: flex;
+  border: 2px solid #d4d4d4;
   flex-direction: column;
 }
 

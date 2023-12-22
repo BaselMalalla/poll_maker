@@ -1,10 +1,11 @@
 <?php
 session_start();
 include('../includes/header.php');
+include('../includes/functions.php');
 
 
-// Get poll ID from the query parameters
 $pollId = isset($_GET['poll_id']) ? $_GET['poll_id'] : null;
+$userId = (isset($_SESSION['user_id'])) ? $_SESSION['user_id'] : null;
 
 if (!$pollId) {
     die("Poll ID is not set or invalid.");
@@ -28,6 +29,8 @@ try {
         exit;
     }
 
+    $creatorId = $poll['user_id'];
+
     // Fetch options and vote counts
     $query = "SELECT poll_options.option_id, poll_options.content, COUNT(votes.vote_id) AS vote_count
           FROM poll_options
@@ -40,9 +43,21 @@ try {
 
     $options = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    // Handle the exception (e.g., log or display an error message)
     echo "Error: " . $e->getMessage();
 }
+
+$totalVotes = countTotalVotes($options);
+
+// Function to count total votes for a given poll
+function countTotalVotes($options)
+{
+    $totalVotes = 0;
+    foreach ($options as $option) {
+        $totalVotes += $option['vote_count'];
+    }
+    return $totalVotes;
+}
+// Function to format voting results
 function formatResult($voteCount, $totalVotes)
 {
     if ($totalVotes > 0) {
@@ -53,11 +68,6 @@ function formatResult($voteCount, $totalVotes)
     }
 }
 
-
-$totalVotes = 0;
-foreach ($options as $option) {
-    $totalVotes += $option['vote_count'];
-}
 
 ?>
 
@@ -83,7 +93,10 @@ foreach ($options as $option) {
                 </div>
             <?php endforeach; ?>
         </div>
-        <a class="button-primary" href="index.php">Back to Polls</a>
+        <a class="button-primary" href="index.php">Back to Home page</a>
+        <?php if (isUserTheCreator($userId, $creatorId)) : ?>
+            <a class="button-primary button-card" href='stop_poll.php?poll_id=<?php echo $pollId; ?>'>Stop Poll</a>
+        <?php endif; ?>
     </div>
 </body>
 

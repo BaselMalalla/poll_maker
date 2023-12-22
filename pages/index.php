@@ -1,7 +1,9 @@
 <!-- Page structure needs minor improvements when there are no results  -->
+<!-- If vote button is disabled, use title to let the user know why -->
 <?php
 session_start();
 include('../includes/header.php');
+include('../includes/functions.php');
 
 $polls = [];
 
@@ -15,16 +17,19 @@ $stmt->execute();
 if ($stmt->rowCount() > 0) {
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $pollId = $row['poll_id'];
+        $userId = $row['user_id'];
         $title = $row['title'];
         $question = $row['question'];
         $endDate = $row['end_date'];
 
-        // Check if the poll is closed
-        $isOpen = ($endDate === null || strtotime($endDate) > time()) ? true : false;
+
+        // Check if the poll is closed based on date
+        $isOpen = isPollOpen($endDate);
 
         // Create an associative array for the poll
         $poll = [
             'pollId' => $pollId,
+            'userId' => $userId,
             'title' => $title,
             'question' => $question,
             'isOpen' => $isOpen,
@@ -44,32 +49,55 @@ function getFilteredQueryStatement()
     $statusFilter = isset($_POST['statusFilter']) ? $_POST['statusFilter'] : 'all';
     $startDate = isset($_POST['startDate']) ? $_POST['startDate'] : null;
     $endDate = isset($_POST['endDate']) ? $_POST['endDate'] : null;
+    $ownedPolls = isset($_POST['ownedPolls']) ? true : false;
 
+    $userId = (isset($_SESSION['user_id'])) ? $_SESSION['user_id'] : null;
+
+    // Initial query
     $query = "SELECT * FROM polls";
-
+    $filtersApplied = 0;
     // Apply filters
     if ($statusFilter !== 'all') {
-        $query .= " WHERE (end_date " . ($statusFilter == 'open' ? 'IS NULL OR end_date > CURRENT_TIMESTAMP' : '< CURRENT_TIMESTAMP') . ")";
+        $query .= " WHERE (end_date " . ($statusFilter == 'open' ? 'IS NULL OR end_date >= CURRENT_TIMESTAMP' : '< CURRENT_TIMESTAMP') . ")";
+        $filtersApplied++;
     }
 
     if ($startDate) {
         $query .= ($statusFilter == 'all' ? " WHERE" : " AND") . " end_date >= :startDate";
+        $filtersApplied++;
     }
 
     if ($endDate) {
         $query .= ($statusFilter == 'all' && !$startDate ? " WHERE" : " AND") . " end_date <= :endDate";
+        $filtersApplied++;
     }
+
+    // Add owned polls filter
+    if ($ownedPolls && $userId) {
+        if ($filtersApplied > 0) {
+            $query .= " AND user_id = :userId";
+        } else {
+            $query .= " WHERE user_id = :userId";
+        }
+        $filtersApplied = 0;
+    }
+
     try {
         require('../config/connection.php');
         $stmt = $db->prepare($query);
 
-        // Bind parameters for date range
+        // Bind dates for date range
         if ($startDate) {
-            $stmt->bindParam(':startDate', $startDate);
+            $stmt->bindValue(':startDate', $startDate);
         }
 
         if ($endDate) {
-            $stmt->bindParam(':endDate', $endDate);
+            $stmt->bindValue(':endDate', $endDate);
+        }
+
+        // Bind user ID for owned polls filter
+        if ($ownedPolls && $userId) {
+            $stmt->bindValue(':userId', $userId);
         }
 
         return $stmt;
@@ -98,6 +126,12 @@ function getFilteredQueryStatement()
             <div class="filter-container">
                 <div class="filter-row">
                     <div class="filter-item">
+                        <label for="ownedPolls" class="filter-label">Owned Polls:</label>
+                        <input type="checkbox" name="ownedPolls" id="ownedPolls" class="filter-checkbox">
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-item">
                         <label for="statusFilter" class="filter-label">Status:</label>
                         <select name="statusFilter" id="statusFilter" class="filter-select">
                             <option value="all">All</option>
@@ -122,9 +156,12 @@ function getFilteredQueryStatement()
                 </div>
             </div>
         </form>
-        <?php
-        echo " <div class='validation-message'><p>$queryResponseMessage</p></div>";
-        ?>
+        <div class="validation-message">
+            <?php if (!isset($_SESSION['user_id'])) : ?>
+                <span> You are in view-only mode. Login to cast your votes.</span><br>
+            <?php endif; ?>
+            <span><?php echo $queryResponseMessage ?></span>
+        </div>
         <div class="flex-container">
             <?php
 
@@ -135,10 +172,14 @@ function getFilteredQueryStatement()
                 $pollId = $poll['pollId'];
                 $title = $poll['title'];
                 $question = $poll['question'];
-                $isOpen = $poll['isOpen'];
                 $endDate = $poll['endDate'];
+                $creatorId = $poll['userId'];
+                $isOpen = isPollOpen($endDate);
 
-                $allowVote = isset($_SESSION['user_id']) && $isOpen;
+
+                $userId = (isset($_SESSION['user_id'])) ? $_SESSION['user_id'] : null;
+                $allowVote = isUserAllowedToVote($userId, $pollId, $isOpen);
+                $userIsTheCreator = isUserTheCreator($userId, $creatorId);
             ?>
 
                 <div class="flex-item">
@@ -148,9 +189,9 @@ function getFilteredQueryStatement()
                         </div>
                         <div class="card-body">
                             <p><?php echo substr($question, 0, 70) . (strlen($question) > 70 ? '...' : ''); ?></p>
-                            <p> <?php echo (!$isOpen ? '<span class="closed">Closed</span>' : '<span class="open">Open</span>'); ?></p>
+                            <p> <?php echo ($isOpen ? '<span class="open">Open</span>' : '<span class="closed">Closed</span>'); ?></p>
 
-                            <p>Expiry Date: <?php echo ($poll['endDate'] !== null ? date('Y-m-d H:i', strtotime($poll['endDate'])) : 'No expiry date set'); ?></p>
+                            <p>Expiry Date: <?php echo ($endDate !== null ? date('Y-m-d H:i', strtotime($poll['endDate'])) : 'No expiry date set'); ?></p>
 
                             <div class="card-buttons-container">
 
@@ -159,7 +200,10 @@ function getFilteredQueryStatement()
                                 <?php else : ?>
                                     <a class="button-primary button-card disabled-link" href='vote.php?poll_id=<?php echo $pollId; ?>'>Vote</a>
                                 <?php endif; ?>
-                                <a class="button-primary button-card" href='results.php?poll_id=<?php echo $pollId; ?>' <?php echo ($isOpen ? '' : 'disabled'); ?>>Results</a>
+                                <a class="button-primary button-card" href='results.php?poll_id=<?php echo $pollId; ?>'>Results</a>
+                                <?php if ($userIsTheCreator) : ?>
+                                    <a class="button-primary button-card" href='stop_poll.php?poll_id=<?php echo $pollId; ?>'>Stop Poll</a>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
