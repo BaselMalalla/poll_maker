@@ -302,3 +302,17 @@ body {
 .filter-container {
   margin-bottom: 20px;
 }
+
+/* Results Styling */
+
+.poll-results {
+  margin-top: 20px;
+}
+
+.result-option {
+  border: 1px solid #ddd;
+  padding: 10px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  background-color: #fff;
+}
