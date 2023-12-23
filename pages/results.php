@@ -84,20 +84,22 @@ function formatResult($voteCount, $totalVotes)
 <body>
     <div class="page-container">
         <h1>Poll Results: <?php echo $poll['title']; ?></h1>
-        <div class="poll-results">
+        <div class="card poll-results-container">
             <h2><?php echo $poll['question']; ?></h2>
             <?php foreach ($options as $option) : ?>
-                <div class="result-option">
-                    <p><?php echo $option['content']; ?></p>
-                    <p><?php echo formatResult($option['vote_count'], $totalVotes); ?></p>
+                <div class="result-option-card">
+                    <div class="result-option-content"><?php echo $option['content']; ?></div>
+                    <div class="result-option-number"><?php echo formatResult($option['vote_count'], $totalVotes); ?></div>
                 </div>
             <?php endforeach; ?>
-        </div>
 
-        <a class="button-primary" href="index.php">Back to Home page</a>
-        <?php if (isUserTheCreator($userId, $creatorId)) : ?>
-            <a class="button-primary button-card" href='stop_poll.php?poll_id=<?php echo $pollId; ?>'>Stop Poll</a>
-        <?php endif; ?>
+            <div class="card-buttons-container">
+                <a class="button-primary button-card" href="index.php">Back to Home page</a>
+                <?php if (isUserTheCreator($userId, $creatorId)) : ?>
+                    <a class="button-primary button-card button-card-stop" href='stop_poll.php?poll_id=<?php echo $pollId; ?>'>Stop Poll</a>
+                <?php endif; ?>
+            </div>
+        </div>
 
     </div>
 </body>

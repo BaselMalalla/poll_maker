@@ -20,6 +20,7 @@ body {
   padding: 20px;
   margin-top: 50px;
   min-width: 60%;
+  max-width: 85%;
 }
 
 .container {
@@ -126,6 +127,17 @@ body {
   font-size: 13px;
 }
 
+@media (max-width: 768px) {
+  .option-controls {
+    flex-direction: column;
+  }
+  .option-controls button {
+    width: 100%;
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+}
+
 /* Radio Buttons Styling */
 .radio-options {
   display: flex;
@@ -182,8 +194,9 @@ body {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  min-width: 100%;
+  min-width: 90%;
   flex-direction: column;
+  width: min-content;
 }
 
 .flex-item {
@@ -224,11 +237,13 @@ body {
   text-align: center;
   margin-right: 1.5%;
   margin-bottom: 0;
+  height: 50%;
 }
 
 .button-card-stop {
   margin-left: auto;
   background-color: #ce0000;
+  margin-right: 0;
 }
 
 .disabled-link {
@@ -262,25 +277,20 @@ body {
     display: flex;
     flex-direction: column;
     margin-top: auto;
-    width: 100%;
+    width: 90%;
   }
 
   .button-card {
     position: relative;
-    width: 100%;
+    width: 90%;
     bottom: 0;
     text-align: center;
     margin-right: 1.5%;
   }
-}
-
-@media (max-width: 400px) {
-  .flex-item {
-    width: 100%; /* One card per row */
+  .button-card-stop {
+    margin-left: 0;
   }
 }
-
-/* Polls Filters Styling */
 
 .filter-row {
   display: flex;
@@ -326,14 +336,35 @@ body {
 
 /* Results Styling */
 
-.poll-results {
-  margin-top: 20px;
+.poll-results-container {
+  max-width: 90%;
 }
 
-.result-option {
-  border: 1px solid #ddd;
+.result-option-card {
+  display: flex;
+  flex-direction: row;
+  margin-top: 10px;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  min-height: 50px;
+  padding: 20px;
+  overflow: hidden;
+  border: 2px solid #d4d4d4;
+}
+
+.result-option-content {
   padding: 10px;
   margin-bottom: 10px;
-  border-radius: 5px;
-  background-color: #fff;
+}
+.result-option-number {
+  margin-left: auto;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+  .result-option-card {
+    width: 80%;
+  }
 }
