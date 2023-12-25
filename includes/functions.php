@@ -26,7 +26,6 @@ function isUserAllowedToVote($userId, $pollId, $isPollOpen)
 
         return ($voteCount == 0); // User is allowed to vote if they haven't voted before
     } catch (PDOException $e) {
-        // Handle the exception (e.g., log or display an error message)
         echo "Error: " . $e->getMessage();
         return false;
     }

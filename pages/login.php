@@ -10,8 +10,6 @@ try {
 
   if (isset($_POST['login-btn'])) {
 
-    // Add regex verification here if needed
-
     $email = $_POST['email'];
     $password = $_POST['password'];
 

@@ -25,10 +25,9 @@ try {
     $stmt->bindValue(':userId', $userId);
     $stmt->execute();
 
-    // Redirect to the home page or show a success message
+    // Redirect to the home page upon success
     header('Location: index.php');
     exit();
 } catch (PDOException $e) {
-    // Handle the exception (e.g., log or display an error message)
     echo "Error: " . $e->getMessage();
 }

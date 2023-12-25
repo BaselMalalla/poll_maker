@@ -32,7 +32,6 @@ try {
         $options = getPollOptions($db, $pollId);
     }
 } catch (PDOException $e) {
-    // Handle the exception (e.g., log or display an error message)
     echo "Error: " . $e->getMessage();
 }
 function getPollDetails($db, $pollId)

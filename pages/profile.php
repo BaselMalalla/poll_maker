@@ -1,5 +1,3 @@
-<!-- Page structure needs minor improvements when there are no results  -->
-<!-- If vote button is disabled, use title to let the user know why -->
 <?php
 session_start();
 include('../includes/header.php');
@@ -102,7 +100,6 @@ function getFilteredQueryStatement()
 
         return $stmt;
     } catch (PDOException $e) {
-        // Handle the exception (e.g., log or display an error message)
         echo "Error: " . $e->getMessage();
     }
 }

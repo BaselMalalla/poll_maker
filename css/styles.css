@@ -11,11 +11,9 @@ body {
 }
 
 .page-container {
-  /* box-sizing: border-box; */
   max-width: 1000px;
   margin: 0 auto;
   background-color: #fff;
-  /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); */
   border-radius: 8px;
   padding: 20px;
   margin-top: 50px;
@@ -171,12 +169,12 @@ body {
   color: #333;
 }
 .timed-options {
-  margin-top: 10px; /* Adjusted top margin for spacing */
+  margin-top: 10px;
 }
 
 .timed-options input {
-  width: 100%; /* Make the input field take full width */
-  padding: 10px; /* Adjusted padding for better styling */
+  width: 100%;
+  padding: 10px;
   box-sizing: border-box;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -201,7 +199,6 @@ body {
 
 .flex-item {
   width: 100%;
-  /* margin-bottom: 10px; */
   margin-top: 10px;
 }
 
@@ -305,7 +302,6 @@ body {
 .filter-label {
   display: block;
   margin-bottom: 5px;
-  /* font-weight: bold; */
 }
 
 .filter-select,
@@ -317,7 +313,7 @@ body {
 
 @media (max-width: 768px) {
   .filter-item {
-    flex: 1 0 100%; /* Make each filter item take full width for mobile and tablet */
+    flex: 1 0 100%;
     margin-right: 0;
     margin-bottom: 10px;
   }

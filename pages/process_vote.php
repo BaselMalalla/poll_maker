@@ -9,7 +9,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $recordedAt = date('Y-m-d H:i:s');
 
         try {
-            // Assuming you have a PDO connection established in your connection.php file
             require('../config/connection.php');
 
             // Insert vote into the votes table
@@ -25,7 +24,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             header("Location: results.php?poll_id=$pollId");
         } catch (PDOException $e) {
-            // Handle the exception (e.g., log or display an error message)
             echo "Error: " . $e->getMessage();
         }
     } else {
